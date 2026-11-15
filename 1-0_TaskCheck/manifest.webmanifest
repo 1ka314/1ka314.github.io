@@ -1,0 +1,12 @@
+{
+    "name": "TaskCheck",
+    "short_name": "My tasks",
+    "start_url": "./",
+    "icons": [
+        {
+            "src": "./icons/main1.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

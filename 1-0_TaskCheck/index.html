@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+
+        <link rel="manifest" href="./manifest.webmanifest">
+        <link rel="icon" type="image/png" href="./icons/main1.png">
+        <link rel="apple-touch-icon" href="./icons/main1.png">
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>My tasks</title>
+        <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+        <style>
+            body {
+                margin: 0 auto;
+                max-width: 600px;
+                padding: 0 16px;
+                text-align: center;
+                font-family: "M PLUS Rounded 1c", sans-serif;
+                box-shadow: none;
+            }
+            input {
+                background-color: #dfdfdf;
+                border: 1px solid #bfbfbf;
+                border-radius: 5px;
+                padding: 10px 10px;
+                width: 70%;
+            }
+            .taskBox {
+                background-color: #dfdfdf;
+                border: 1px solid #bfbfbf;
+                border-radius: 5px;
+                padding: 10px 10px;
+                width: 85%;
+                display: flex;
+                flex-direction: column;
+                margin: 0 auto;
+                margin-top: 10px;
+            }
+            .taskLine {
+                display: flex;
+                align-items: center;
+            }
+            #uploadButton {
+                background-color: #00ff00;
+                border: 1px solid #bfbfbf;
+                border-radius: 5px;
+                padding: 10px 10px;
+                width: 50px;
+            }
+            .taskSuccessButton {
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                border: none;
+            }
+            .yetTask {
+                background-color: #5f5f5f;
+                appearance: none;
+            }
+            .endTask {
+                background-color: transparent;
+                border: 2px solid #00ff00;
+            }
+            .endText {
+                text-decoration: line-through;
+                color: #5f5f5f;
+            }
+            .line {
+                width: 550px;
+                border-top: 1px solid #bfbfbf;
+                margin: 0 auto;
+            }
+            .taskBox > .line:last-child {
+                display: none;
+            }
+            .deleteButton {
+                margin-left: auto;
+                font-size: 25px;
+                background-color: transparent;
+                border: none;
+                appearance: none;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h1>My Tasks</h1>
+        <p>今日やることを整理しよう</p>
+        <input id="input" type="text" placeholder="タスクを入力...">
+        <button id="uploadButton" onclick="uploadClick()">追加</button>
+        <br>
+        <div class="taskBox" id="taskBox">
+        </div>
+        <p id="number">全0件・完了0件</p>
+
+
+        <script>
+            let tasks = [
+                //{management: 0, name: "部屋を掃除する", end: false}
+            ];
+            let maxNumber = 0;
+            let tmpTask = [];
+            let savedTasks = [];
+
+            window.addEventListener("DOMContentLoaded", function() {
+                if (localStorage.getItem("tasks") === null) {
+                    localStorage.setItem("tasks", "[]");
+                }
+                savedTasks = JSON.parse(localStorage.getItem("tasks"));
+                for (let i = 0; i < savedTasks.length; i++) {
+                    tmpTask = {management: maxNumber, name: savedTasks[i].name, end: savedTasks[i].end};
+                    tasks.push(tmpTask);
+                    putText();
+                    maxNumber ++;
+                }
+                if (tasks === null) {
+                    tasks = [];
+                }
+            });
+
+
+
+            function uploadClick() {
+                let text = document.getElementById("input").value.trim();
+                if (text === "") {
+                    alert("文字を入力してください")
+                } else {
+                    tmpTask = {management: maxNumber, name: text, end: false};
+                    tasks.push(tmpTask);
+                    putText();
+                    maxNumber ++;
+                    localStorage.setItem("tasks", JSON.stringify(tasks));
+                }
+                
+            }
+
+            function putText() {
+                let nowNumber = maxNumber;
+                const addTaskLine = document.createElement("div");
+                addTaskLine.id = "task" + maxNumber;
+                addTaskLine.className = "taskLine"
+
+                const addSuccessButton = document.createElement("button");
+                addSuccessButton.id = "taskSuccessButton" + maxNumber;
+                addSuccessButton.onclick = () => {taskSuccessClick(nowNumber)};
+                addSuccessButton.classList.add("taskSuccessButton");
+                if (tmpTask.end === false) {
+                    addSuccessButton.classList.add("yetTask");
+                } else {
+                    addSuccessButton.classList.add("endTask");
+                    addSuccessButton.textContent = "✓";
+                }
+
+                const addText = document.createElement("p");
+                addText.id = "taskText" + maxNumber;
+                if (tmpTask.end === true) {
+                    addText.classList.add("endText");
+                }
+                addText.textContent = tmpTask.name;
+
+                const addDeleteButton = document.createElement("button");
+                addDeleteButton.id = "taskDeleteButton" + maxNumber;
+                addDeleteButton.className = "deleteButton";
+                addDeleteButton.textContent = "×";
+                addDeleteButton.onclick = () => {taskDeleteClick(nowNumber)}
+                
+                const addLine = document.createElement("div");
+                addLine.id = "line" + maxNumber;
+                addLine.className = "line";
+
+                addTaskLine.appendChild(addSuccessButton);
+                addTaskLine.appendChild(addText);
+                addTaskLine.appendChild(addDeleteButton);
+
+                document.getElementById("taskBox").appendChild(addTaskLine);
+                document.getElementById("taskBox").appendChild(addLine);
+
+                numberLoad()
+
+            }
+
+            function taskSuccessClick(management) {
+                const SuccessButton = document.getElementById("taskSuccessButton"+management);
+                const taskText = document.getElementById("taskText"+management);
+                if (SuccessButton.classList.contains("yetTask")) {
+                    SuccessButton.classList.add("endTask");
+                    SuccessButton.classList.remove("yetTask");
+                    SuccessButton.textContent = "✓";
+                    taskText.classList.add("endText");
+                    tasks.find(tasks => tasks.management === management).end = true;
+                    
+                } else {
+                    SuccessButton.classList.add("yetTask");
+                    SuccessButton.classList.remove("endTask");
+                    SuccessButton.textContent = "";
+                    taskText.classList.remove("endText");
+                    tasks.find(tasks => tasks.management === management).end = false;
+                }
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                numberLoad()
+                 
+            }
+
+            function taskDeleteClick(management) {
+                if (tasks.findIndex(tasks => tasks.management === management) < 0) {
+                    return;
+                }
+                document.getElementById("task"+management).remove();
+                document.getElementById("line"+management).remove(); 
+                tasks.splice(tasks.findIndex(tasks => tasks.management === management),1);
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                numberLoad()
+            }
+
+            function numberLoad() {
+                document.getElementById("number").textContent = "全" + tasks.length + "件・完了" + tasks.filter((tasks) => tasks.end === true).length + "件";
+            }
+
+        </script>
+    </body>
+</html>
